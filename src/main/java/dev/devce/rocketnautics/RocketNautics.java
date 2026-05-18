@@ -55,14 +55,6 @@ public class RocketNautics {
         modContainer.registerConfig(ModConfig.Type.SERVER, (net.neoforged.fml.config.IConfigSpec) RocketConfig.SERVER_SPEC);
         modContainer.registerConfig(ModConfig.Type.CLIENT, (net.neoforged.fml.config.IConfigSpec) RocketConfig.CLIENT_SPEC);
 
-        // Attempt to expand Sable altitude limits to allow for high-altitude flight
-        try {
-            dev.ryanhcode.sable.SableConfig.SUB_LEVEL_REMOVE_MIN.set(-1000000.0);
-            dev.ryanhcode.sable.SableConfig.SUB_LEVEL_REMOVE_MAX.set(1000000.0);
-            LOGGER.info("Successfully expanded Sable altitude limits for Cosmonautics.");
-        } catch (Exception e) {
-            LOGGER.error("Failed to override SableConfig: {}", e.getMessage());
-        }
         modEventBus.addListener(RocketDatagen::gatherData);
 
         // Register registries
@@ -111,16 +103,7 @@ public class RocketNautics {
      */
     private void setup(final FMLCommonSetupEvent event) {
         LOGGER.info("Cosmonautics Setup");
-        // Ensure Sable altitude limits are set even if constructor override was too early
-        event.enqueueWork(() -> {
-            try {
-                dev.ryanhcode.sable.SableConfig.SUB_LEVEL_REMOVE_MIN.set(-1000000.0);
-                dev.ryanhcode.sable.SableConfig.SUB_LEVEL_REMOVE_MAX.set(1000000.0);
-                LOGGER.info("Successfully expanded Sable altitude limits via enqueueWork.");
-            } catch (Exception e) {
-                LOGGER.error("Failed to set SableConfig in enqueueWork: {}", e.getMessage());
-            }
-        });
+        // Sable altitude limits override has been moved to onServerAboutToStart event to prevent early-access exceptions
     }
 
     /**
@@ -133,6 +116,17 @@ public class RocketNautics {
         JetpackCommand.register(event.getDispatcher());
         dev.devce.rocketnautics.content.commands.AsteroidCommand.register(event.getDispatcher());
         dev.devce.rocketnautics.content.commands.BreakBarrierCommand.register(event.getDispatcher());
+    }
+
+    @SubscribeEvent
+    public void onServerAboutToStart(net.neoforged.neoforge.event.server.ServerAboutToStartEvent event) {
+        try {
+            dev.ryanhcode.sable.SableConfig.SUB_LEVEL_REMOVE_MIN.set(-1000000.0);
+            dev.ryanhcode.sable.SableConfig.SUB_LEVEL_REMOVE_MAX.set(1000000.0);
+            LOGGER.info("Successfully expanded Sable altitude limits in ServerAboutToStartEvent.");
+        } catch (Exception e) {
+            LOGGER.error("Failed to override SableConfig in ServerAboutToStartEvent: {}", e.getMessage());
+        }
     }
     @SubscribeEvent
     public void onLevelTick(LevelTickEvent.Post event) {
