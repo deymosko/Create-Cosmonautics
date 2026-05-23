@@ -48,9 +48,6 @@ public class RocketRegistrate extends SimulatedRegistrate {
         actualProvider = new LimitedRegistrateDataProvider(this, getModid(), event);
         // more effort than it's worth, considering we support english and russian by default.
         actualProvider.disableProvider(ProviderType.LANG);
-        // TODO move blockstates and item models to Registrate-powered datagen
-        actualProvider.disableProvider(ProviderType.BLOCKSTATE);
-        actualProvider.disableProvider(ProviderType.ITEM_MODEL);
         event.getGenerator().addProvider(true, actualProvider);
     }
 
