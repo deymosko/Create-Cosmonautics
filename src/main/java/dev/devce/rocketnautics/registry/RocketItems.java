@@ -3,7 +3,9 @@ package dev.devce.rocketnautics.registry;
 import com.simibubi.create.AllTags;
 import com.simibubi.create.content.equipment.armor.AllArmorMaterials;
 import com.simibubi.create.content.equipment.armor.DivingBootsItem;
+import com.tterrag.registrate.builders.ItemBuilder;
 import com.tterrag.registrate.util.entry.ItemEntry;
+import com.tterrag.registrate.util.nullness.NonNullFunction;
 import dev.devce.rocketnautics.RocketNautics;
 import dev.devce.rocketnautics.content.items.*;
 import dev.simulated_team.simulated.registrate.SimulatedRegistrate;
@@ -17,6 +19,7 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.neoforged.neoforge.common.Tags;
+import org.jspecify.annotations.NonNull;
 
 
 public class RocketItems {
@@ -35,6 +38,7 @@ public class RocketItems {
 
     public static final ItemEntry<JetpackItem> JETPACK = REGISTRATE.item("jetpack", JetpackItem::new)
             .properties(p -> p.stacksTo(1).fireResistant())
+            .transform(noGeneratedModel())
             .tag(ItemTags.CHEST_ARMOR)
             .tag(AllTags.AllItemTags.PRESSURIZED_AIR_SOURCES.tag)
             .register();
@@ -89,4 +93,8 @@ public class RocketItems {
     }
 
     public static void init() {}
+
+    static @NonNull <T extends Item, V> NonNullFunction<ItemBuilder<T, V>, ItemBuilder<T, V>> noGeneratedModel() {
+        return i -> i.model((ctx, prov) -> {});
+    }
 }

@@ -1,6 +1,9 @@
 package dev.devce.rocketnautics.registry;
 
+import com.simibubi.create.foundation.data.CreateRegistrate;
+import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.util.entry.BlockEntry;
+import com.tterrag.registrate.util.nullness.NonNullFunction;
 import dev.devce.rocketnautics.RocketNautics;
 import dev.devce.rocketnautics.content.RocketBlockItem;
 import dev.devce.rocketnautics.content.blocks.*;
@@ -21,6 +24,7 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
 import net.neoforged.neoforge.common.Tags;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Map;
 
@@ -35,6 +39,7 @@ public class RocketBlocks {
             .properties(BlockBehaviour.Properties::noOcclusion)
             .transform(pickaxeOnly())
             .tag(RocketTags.BlockTags.THRUSTERS.tag)
+            .transform(existingDirectionalModel("rocket_thruster"))
             .item(RocketBlockItem::new).build().register();
 
     public static final BlockEntry<VectorThrusterBlock> VECTOR_THRUSTER = REGISTRATE.block("vector_thruster", VectorThrusterBlock::new)
@@ -42,13 +47,17 @@ public class RocketBlocks {
             .properties(BlockBehaviour.Properties::noOcclusion)
             .transform(pickaxeOnly())
             .tag(RocketTags.BlockTags.THRUSTERS.tag)
-            .item(RocketBlockItem::new).build().register();
+            .transform(existingDirectionalModel("vector_thruster_base"))
+            .item(RocketBlockItem::new)
+            .transform(RocketItems.noGeneratedModel())
+            .build().register();
 
     public static final BlockEntry<BoosterThrusterBlock> BOOSTER_THRUSTER = REGISTRATE.block("booster_thruster", BoosterThrusterBlock::new)
             .initialProperties(() -> Blocks.IRON_BLOCK)
             .properties(BlockBehaviour.Properties::noOcclusion)
             .transform(pickaxeOnly())
             .tag(RocketTags.BlockTags.THRUSTERS.tag)
+            .transform(existingDirectionalModel("booster_thruster"))
             .item(RocketBlockItem::new).build().register();
 
     public static final BlockEntry<RCSThrusterBlock> RCS_THRUSTER = REGISTRATE.block("rcs_thruster", RCSThrusterBlock::new)
@@ -56,18 +65,24 @@ public class RocketBlocks {
             .properties(BlockBehaviour.Properties::noOcclusion)
             .transform(pickaxeOnly())
             .tag(RocketTags.BlockTags.THRUSTERS.tag)
+            .transform(existingDirectionalModel("rcs_thruster"))
             .item(RocketBlockItem::new).build().register();
+
 
     public static final BlockEntry<SeparatorBlock> SEPARATOR = REGISTRATE.block("separator", SeparatorBlock::new)
             .initialProperties(() -> Blocks.IRON_BLOCK)
             .properties(BlockBehaviour.Properties::noOcclusion)
             .transform(pickaxeOnly())
-            .item(RocketBlockItem::new).build().register();
+            .transform(existingDirectionalModel("sep"))
+            .item(RocketBlockItem::new)
+            .model((ctx, prov) -> prov.blockItem(ctx::getEntry, "_single"))
+            .build().register();
 
     public static final BlockEntry<SputnikBlock> SPUTNIK = REGISTRATE.block("sputnik", SputnikBlock::new)
             .initialProperties(() -> Blocks.IRON_BLOCK)
             .properties(BlockBehaviour.Properties::noOcclusion)
             .transform(pickaxeOnly())
+            .transform(existingSimpleModel("sputnik"))
             .item(RocketBlockItem::new)
             .recipe((ctx, prov) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ctx.get())
                     .pattern("L L")
@@ -84,7 +99,9 @@ public class RocketBlocks {
     public static final BlockEntry<HologramTableBlock> HOLOGRAM_TABLE = REGISTRATE.block("hologram_block", HologramTableBlock::new)
             .initialProperties(() -> Blocks.IRON_BLOCK)
             .transform(pickaxeOnly())
+            .transform(existingSimpleModel("hologram_block"))
             .item(RocketBlockItem::new)
+            .transform(RocketItems.noGeneratedModel())
             .build()
             .register();
 
@@ -174,4 +191,13 @@ public class RocketBlocks {
 
 
     public static void init() {}
+
+    private static <T extends Block> @NonNull NonNullFunction<BlockBuilder<T, CreateRegistrate>, BlockBuilder<T, CreateRegistrate>> existingDirectionalModel(String name) {
+        return b -> b.blockstate((ctx, prov) -> prov.directionalBlock(ctx.getEntry(), prov.models().getExistingFile(RocketNautics.path("block/" + name))));
+    }
+
+    private static <T extends Block> @NonNull NonNullFunction<BlockBuilder<T, CreateRegistrate>, BlockBuilder<T, CreateRegistrate>> existingSimpleModel(String name) {
+        return b -> b.blockstate((ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models().getExistingFile(RocketNautics.path("block/" + name))));
+    }
+
 }
