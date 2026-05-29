@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:simple_block",
+  "config": {
+    "to_place": {
+      "type": "minecraft:noise_provider",
+      "noise": {
+        "amplitudes": [
+          1.0,
+          2.0,
+          1.0
+        ],
+        "firstOctave": -3
+      },
+      "scale": 1.0,
+      "seed": 58934673468485,
+      "states": [
+        {
+          "Name": "rocketnautics:lunar_moss_scraggly",
+          "Properties": {
+            "facing": "up"
+          }
+        },
+        {
+          "Name": "rocketnautics:lunar_moss_short",
+          "Properties": {
+            "facing": "up"
+          }
+        },
+        {
+          "Name": "rocketnautics:lunar_moss_stiff",
+          "Properties": {
+            "facing": "up"
+          }
+        }
+      ]
+    }
+  }
+}

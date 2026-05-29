@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:simple_block",
+  "config": {
+    "to_place": {
+      "type": "minecraft:noise_provider",
+      "noise": {
+        "amplitudes": [
+          1.0,
+          2.0,
+          1.0
+        ],
+        "firstOctave": -3
+      },
+      "scale": 1.0,
+      "seed": 385934896,
+      "states": [
+        {
+          "Name": "rocketnautics:lunar_rock_smooth",
+          "Properties": {
+            "facing": "up"
+          }
+        },
+        {
+          "Name": "rocketnautics:lunar_rock_spiky",
+          "Properties": {
+            "facing": "up"
+          }
+        },
+        {
+          "Name": "rocketnautics:lunar_rock_tall",
+          "Properties": {
+            "facing": "up"
+          }
+        }
+      ]
+    }
+  }
+}

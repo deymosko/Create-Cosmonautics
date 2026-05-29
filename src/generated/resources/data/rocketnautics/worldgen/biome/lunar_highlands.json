@@ -1,5 +1,11 @@
 {
-  "carvers": {},
+  "carvers": {
+    "air": [
+      "rocketnautics:straight_rille",
+      "rocketnautics:sinuous_rille",
+      "rocketnautics:standard_crater"
+    ]
+  },
   "downfall": 0.0,
   "effects": {
     "fog_color": 14606046,
@@ -7,7 +13,12 @@
     "water_color": 12242144,
     "water_fog_color": 12242144
   },
-  "features": [],
+  "features": [
+    [
+      "rocketnautics:moon/rock",
+      "rocketnautics:moon/moss"
+    ]
+  ],
   "has_precipitation": false,
   "spawn_costs": {},
   "spawners": {

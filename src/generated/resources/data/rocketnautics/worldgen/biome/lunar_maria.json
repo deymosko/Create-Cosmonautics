@@ -1,5 +1,11 @@
 {
-  "carvers": {},
+  "carvers": {
+    "air": [
+      "rocketnautics:straight_rille",
+      "rocketnautics:sinuous_rille",
+      "rocketnautics:standard_crater"
+    ]
+  },
   "downfall": 0.0,
   "effects": {
     "fog_color": 14606046,

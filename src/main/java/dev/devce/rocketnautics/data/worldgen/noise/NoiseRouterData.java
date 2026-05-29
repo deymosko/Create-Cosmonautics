@@ -62,10 +62,10 @@ public class NoiseRouterData {
     public static NoiseRouter moon(HolderGetter<NormalNoise.NoiseParameters> noises, HolderGetter<DensityFunction> densities) {
         // general ideas behind moon worldgen:
         // continents determines highlands or maria. Major influence on average world height.
-        // ridges determines appearance of special biomes -- very positive is unnatural basalt spikes, very negative is volcanic domes?
+        // ridges determines appearance of special biomes -- very positive is unnatural basalt spikes, very negative is chasms
         // ridges folded determines some terrain detail. Minor, localized influence of average world height; primarily influences the highlands to form rugged terrain
         // lava noise is stretched massively along one axis, primarily influences the maria to form wrinkle ridges
-        // erosion determines depth of regolith. Influenced by continents.
+        // erosion is just a miscellaneous parameter used for whatever
         // utilize canyon carvers with extreme values to generate lunar rilles
         // utilize a custom carver to generate craters
         DensityFunction shiftX = getFunction(densities, ResourceKey.create(Registries.DENSITY_FUNCTION, ResourceLocation.withDefaultNamespace("shift_x")));

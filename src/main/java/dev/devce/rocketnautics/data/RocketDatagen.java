@@ -1,5 +1,7 @@
 package dev.devce.rocketnautics.data;
 
+import com.tterrag.registrate.providers.ProviderType;
+import dev.devce.rocketnautics.RocketNautics;
 import dev.devce.rocketnautics.data.recipe.*;
 import dev.devce.rocketnautics.data.worldgen.*;
 import dev.devce.rocketnautics.data.worldgen.noise.NoiseData;
@@ -29,7 +31,10 @@ public class RocketDatagen {
         event.addProvider(new RocketPressingRecipeGen(output, registries));
         event.addProvider(new RocketStandardRecipeGen(output, registries));
         event.addProvider(new RocketWashingRecipeGen(output, registries));
-        event.addProvider(new BiomeTagsProvider(output, registries, event.getExistingFileHelper()));
+
+        event.addProvider(new RocketBiomeTagsProvider(output, registries, event.getExistingFileHelper()));
+        RocketNautics.getRegistrate().addDataGenerator(ProviderType.BLOCK_TAGS, RocketBlockTagsProvider::addTags);
+
         RegistrySetBuilder registry = new RegistrySetBuilder();
         registry.add(Registries.DIMENSION_TYPE, DimensionTypes::bootstrap);
         registry.add(Registries.LEVEL_STEM, LevelStems::bootstrap);
@@ -40,6 +45,7 @@ public class RocketDatagen {
         registry.add(Registries.NOISE_SETTINGS, NoiseGenSettings::bootstrap);
         registry.add(Registries.NOISE, NoiseData::bootstrap);
         registry.add(Registries.DENSITY_FUNCTION, NoiseRouterData::bootstrap);
+        registry.add(Registries.CONFIGURED_CARVER, Carvers::bootstrap);
         event.createDatapackRegistryObjects(registry);
     }
 }

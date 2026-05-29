@@ -137,7 +137,9 @@ public class RocketTags {
     }
 
     public enum BlockTags {
-        THRUSTERS;
+        THRUSTERS,
+        RILLE_CARVABLE,
+        CRATER_CARVABLE;
 
         public final TagKey<Block> tag;
 

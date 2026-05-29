@@ -1,0 +1,20 @@
+{
+  "type": "rocketnautics:rille",
+  "config": {
+    "lava_level": {
+      "above_bottom": 0
+    },
+    "maxAllowedAngle": 10.0,
+    "maxConnectionDistance": 12,
+    "minAllowedAngle": 0.0,
+    "minConnectionDistance": 9,
+    "probability": 0.025,
+    "replaceable": "#rocketnautics:rille_carvable",
+    "salt": 3948672,
+    "searchLength": 5,
+    "y": {
+      "below_top": 0
+    },
+    "yScale": 1.0
+  }
+}

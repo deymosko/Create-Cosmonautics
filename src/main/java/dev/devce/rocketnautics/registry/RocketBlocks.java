@@ -9,6 +9,8 @@ import com.tterrag.registrate.util.nullness.NonNullFunction;
 import dev.devce.rocketnautics.RocketNautics;
 import dev.devce.rocketnautics.content.RocketBlockItem;
 import dev.devce.rocketnautics.content.blocks.*;
+import dev.devce.rocketnautics.content.blocks.world.MossBlock;
+import dev.devce.rocketnautics.content.blocks.world.RockBlock;
 import dev.simulated_team.simulated.registrate.SimulatedRegistrate;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -34,6 +36,7 @@ import java.util.function.Supplier;
 
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 import static com.simibubi.create.foundation.data.TagGen.tagBlockAndItem;
+import static dev.devce.rocketnautics.registry.RocketTags.BlockTags.*;
 
 public class RocketBlocks {
     private static final SimulatedRegistrate REGISTRATE = RocketNautics.getRegistrate();
@@ -156,6 +159,8 @@ public class RocketBlocks {
     public static final BlockEntry<RotatedPillarBlock> LUNAR_REGOLITH = REGISTRATE.block("lunar_regolith", RotatedPillarBlock::new)
             .initialProperties(() -> Blocks.NETHERRACK)
             .properties(p -> p.mapColor(MapColor.STONE))
+            .loot((tables, block) -> tables.add(block, tables.createSingleItemTableWithSilkTouch(block, RocketBlocks.LUNAR_SHATTERED_REGOLITH)))
+            .tag(RILLE_CARVABLE.tag, CRATER_CARVABLE.tag)
             .transform(pickaxeOnly())
             .recipe((ctx, prov) -> prov.smeltingAndBlasting(DataIngredient.items((ItemLike) RocketBlocks.LUNAR_SHATTERED_REGOLITH), RecipeCategory.BUILDING_BLOCKS, ctx::getEntry, 1f))
             .blockstate((ctx, prov) -> prov.axisBlock(ctx.getEntry()))
@@ -205,6 +210,7 @@ public class RocketBlocks {
     public static final BlockEntry<ColoredFallingBlock> LUNAR_LOOSE_REGOLITH = REGISTRATE.block("lunar_loose_regolith", p -> new ColoredFallingBlock(new ColorRGBA(-8356741), p))
             .initialProperties(() -> Blocks.GRAVEL)
             .properties(p -> p.mapColor(MapColor.STONE))
+            .tag(RILLE_CARVABLE.tag, CRATER_CARVABLE.tag)
             .transform(pickaxeOnly())
             .item().build()
             .register();
@@ -236,41 +242,42 @@ public class RocketBlocks {
     public static final BlockEntry<RotatedPillarBlock> LUNAR_AGED_BASALT = REGISTRATE.block("lunar_aged_basalt", RotatedPillarBlock::new)
             .initialProperties(() -> Blocks.BASALT)
             .transform(pickaxeOnly())
+            .tag(RILLE_CARVABLE.tag, CRATER_CARVABLE.tag)
             .blockstate((ctx, prov) -> prov.axisBlock(ctx.getEntry()))
             .item().build()
             .register();
 
-    public static final BlockEntry<Block> LUNAR_MOSS_STIFF = REGISTRATE.block("lunar_moss_stiff", Block::new)
+    public static final BlockEntry<MossBlock> LUNAR_MOSS_STIFF = REGISTRATE.block("lunar_moss_stiff", MossBlock::new)
             .initialProperties(() -> Blocks.DEAD_BRAIN_CORAL)
             .transform(pickaxeOnly())
             .transform(crossModelAndFlatItem()).build()
             .register();
 
-    public static final BlockEntry<Block> LUNAR_MOSS_SHORT = REGISTRATE.block("lunar_moss_short", Block::new)
+    public static final BlockEntry<MossBlock> LUNAR_MOSS_SHORT = REGISTRATE.block("lunar_moss_short", MossBlock::new)
             .initialProperties(() -> Blocks.DEAD_BRAIN_CORAL)
             .transform(pickaxeOnly())
             .transform(crossModelAndFlatItem()).build()
             .register();
 
-    public static final BlockEntry<Block> LUNAR_MOSS_SCRAGGLY = REGISTRATE.block("lunar_moss_scraggly", Block::new)
+    public static final BlockEntry<MossBlock> LUNAR_MOSS_SCRAGGLY = REGISTRATE.block("lunar_moss_scraggly", MossBlock::new)
             .initialProperties(() -> Blocks.DEAD_BRAIN_CORAL)
             .transform(pickaxeOnly())
             .transform(crossModelAndFlatItem()).build()
             .register();
 
-    public static final BlockEntry<Block> LUNAR_ROCK_TALL = REGISTRATE.block("lunar_rock_tall", Block::new)
+    public static final BlockEntry<RockBlock> LUNAR_ROCK_TALL = REGISTRATE.block("lunar_rock_tall", RockBlock::new)
             .initialProperties(() -> Blocks.DEAD_BRAIN_CORAL)
             .transform(pickaxeOnly())
             .transform(crossModelAndFlatItem()).build()
             .register();
 
-    public static final BlockEntry<Block> LUNAR_ROCK_SMOOTH = REGISTRATE.block("lunar_rock_smooth", Block::new)
+    public static final BlockEntry<RockBlock> LUNAR_ROCK_SMOOTH = REGISTRATE.block("lunar_rock_smooth", RockBlock::new)
             .initialProperties(() -> Blocks.DEAD_BRAIN_CORAL)
             .transform(pickaxeOnly())
             .transform(crossModelAndFlatItem()).build()
             .register();
 
-    public static final BlockEntry<Block> LUNAR_ROCK_SPIKY = REGISTRATE.block("lunar_rock_spiky", Block::new)
+    public static final BlockEntry<RockBlock> LUNAR_ROCK_SPIKY = REGISTRATE.block("lunar_rock_spiky", RockBlock::new)
             .initialProperties(() -> Blocks.DEAD_BRAIN_CORAL)
             .transform(pickaxeOnly())
             .transform(crossModelAndFlatItem()).build()
@@ -332,7 +339,13 @@ public class RocketBlocks {
     }
 
     private static <T extends Block> @NonNull NonNullFunction<BlockBuilder<T, CreateRegistrate>, ItemBuilder<BlockItem, BlockBuilder<T, CreateRegistrate>>> crossModelAndFlatItem() {
-        return b -> b.blockstate((ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models().cross(ctx.getName(), prov.blockTexture(ctx.getEntry())).renderType("cutout")))
+        return b -> b.blockstate((ctx, prov) -> {
+            if (ctx.getEntry() instanceof DirectionalBlock) {
+                prov.directionalBlock(ctx.getEntry(), prov.models().cross(ctx.getName(), prov.blockTexture(ctx.getEntry())).renderType("cutout"));
+            } else {
+                prov.simpleBlock(ctx.getEntry(), prov.models().cross(ctx.getName(), prov.blockTexture(ctx.getEntry())).renderType("cutout"));
+            }
+        })
                 .item().model((ctx, prov) -> prov.generated(ctx::getEntry, RocketNautics.path("block/" + ctx.getName())));
     }
 
