@@ -135,14 +135,14 @@ public class SkyHandler {
 
         // Determine quad size based on altitude and scale factor
         double trueSize = SkyDataHandler.toTrueSize(planet.getPowerSize());
-        double optimalSize = camY * (2 << SkyDataHandler.SCALE_FACTOR);
+        double optimalSize = camY * (2 << (SkyDataHandler.SCALE_FACTOR - 1));
         double result = Math.min(prettyness > 0 ? optimalSize : trueSize, SkyDataHandler.toTrueSize(SkyDataHandler.MAX_POWER_SIZE));
-        float parallaxFactor = (float) Math.min(SKYBOX_DISTANCE / Math.max(1, result), SKYBOX_DISTANCE / Math.max(1, Math.pow(2, SkyDataHandler.targetSizeForHeightContinuous(camY) + 1)));
+        float parallaxFactor = (float) (SKYBOX_DISTANCE / Math.max(1, result));
         float size = (float) (result * parallaxFactor);
 
         // Calculate relative position based on parallax
         float relX = (float) ((planet.getCenterX() - camX) * parallaxFactor);
-        float relY = -SKYBOX_DISTANCE / 8; // Render "below" the player
+        float relY = (float) (-camY * parallaxFactor); // Render "below" the player
         float relZ = (float) ((planet.getCenterZ() - camZ) * parallaxFactor);
         
         relX = Mth.lerp(prettyness, relX, 0);
