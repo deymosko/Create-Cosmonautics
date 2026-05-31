@@ -1,10 +1,11 @@
 package dev.devce.rocketnautics.content.orbit.universe;
 
-import dev.devce.rocketnautics.content.orbit.DeepSpaceData;
+import com.google.common.util.concurrent.AtomicDouble;
 import dev.devce.rocketnautics.api.orbit.DeepSpaceHelper;
 import net.minecraft.network.FriendlyByteBuf;
 import org.hipparchus.analysis.UnivariateFunction;
 import org.hipparchus.analysis.solvers.BrentSolver;
+import org.hipparchus.exception.MathIllegalStateException;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.jetbrains.annotations.NotNull;
 import org.orekit.frames.Frame;
@@ -18,7 +19,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 public class DeepSpacePosition {
-    private static final Orbit FALLBACK = new CartesianOrbit(new TimeStampedPVCoordinates(DeepSpaceData.EPOCH, Vector3D.PLUS_I, Vector3D.PLUS_J), Frame.getRoot(), 1);
+    private static final Orbit FALLBACK = new CartesianOrbit(new TimeStampedPVCoordinates(DeepSpaceHelper.EPOCH, Vector3D.PLUS_I, Vector3D.PLUS_J), Frame.getRoot(), 1);
     private static final BrentSolver SOLVER = new BrentSolver();
 
     // generated fields (for read/write operations)
@@ -57,12 +58,12 @@ public class DeepSpacePosition {
         // check if we have entered the domain of a different gravity source;
         // if so, find out exactly when and update our orbit.
         Frame currentFrame = currentOrbit.getFrame();
-        PointGravitySource shouldControlling = determineControllingGravitySource(currentOrbit.getPVCoordinates(DeepSpaceData.getTime(localUniverseTicks + timescale), currentFrame), currentFrame, universe);
+        PointGravitySource shouldControlling = determineControllingGravitySource(currentOrbit.getPVCoordinates(DeepSpaceHelper.getDateByTicks(localUniverseTicks + timescale), currentFrame), currentFrame, universe);
         if (shouldControlling.orekitFrame() != currentFrame) {
             // we want to find the point on the current orbit that intersects the smaller sphere of influence.
             // we know the point is between the time we were at and the time we are now at.
             // we solve this numerically via Brent's Method.
-            AbsoluteDate startTime = DeepSpaceData.getTime(localUniverseTicks);
+            AbsoluteDate startTime = DeepSpaceHelper.getDateByTicks(localUniverseTicks);
             double roi;
             Frame roiFrame;
             if (this.roi < shouldControlling.roi()) {
@@ -72,7 +73,9 @@ public class DeepSpacePosition {
                 roi = shouldControlling.roi();
                 roiFrame = shouldControlling.orekitFrame();
             }
+            AtomicDouble lastCall = new AtomicDouble();
             UnivariateFunction func = t -> {
+                lastCall.set(t);
                 AbsoluteDate time = startTime.shiftedBy(t / 20); // convert from floating ticks to seconds
                 return currentOrbit.getPosition(time, roiFrame).getNormSq() - roi * roi;
             };
@@ -84,7 +87,12 @@ public class DeepSpacePosition {
                 // our level of accuracy is controlled by the maximum evaluations.
                 // would it be better to instead set an absolute accuracy of 0.5,
                 // then round the solved time to the nearest tick?
-                double transitionTicks = SOLVER.solve(10, func, 0, timescale);
+                double transitionTicks;
+                try {
+                    transitionTicks = SOLVER.solve(10, func, 0, timescale);
+                } catch (MathIllegalStateException e) {
+                    transitionTicks = lastCall.get();
+                }
                 AbsoluteDate transitionTime = startTime.shiftedBy(transitionTicks / 20);
                 // construct a new orbit, starting from our position at the transition time.
                 transitionCoords = currentOrbit.getPVCoordinates(transitionTime, shouldControlling.orekitFrame());
@@ -180,7 +188,7 @@ public class DeepSpacePosition {
     }
 
     public AbsoluteDate getLocalUniverseTime() {
-        return DeepSpaceData.getTime(localUniverseTicks);
+        return DeepSpaceHelper.getDateByTicks(localUniverseTicks);
     }
 
     public Frame getFrame() {
@@ -217,7 +225,7 @@ public class DeepSpacePosition {
 
     public void write(FriendlyByteBuf buf, UniverseDefinition universe) {
         DeepSpaceHelper.STAMPED_PVCOORDS_CODEC_S.encode(buf, getCurrentOrbit().getPVCoordinates(getLocalUniverseTime(), getCurrentOrbit().getFrame()));
-        buf.writeVarInt(universe.getFrameIDByName(getCurrentOrbit().getFrame().getName()));
+        buf.writeVarInt(universe.getIDByFrameName(getCurrentOrbit().getFrame().getName()).orElse(-1));
         buf.writeVarInt(timescale);
         buf.writeVarLong(localUniverseTicks);
     }

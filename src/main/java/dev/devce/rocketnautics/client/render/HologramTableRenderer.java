@@ -7,7 +7,6 @@ import dev.devce.rocketnautics.RocketConfig;
 import dev.devce.rocketnautics.api.orbit.DeepSpaceHelper;
 import dev.devce.rocketnautics.client.DeepSpaceHandler;
 import dev.devce.rocketnautics.content.blocks.HologramTableBlockEntity;
-import dev.devce.rocketnautics.content.orbit.DeepSpaceData;
 import dev.devce.rocketnautics.content.orbit.universe.CubePlanet;
 import dev.devce.rocketnautics.content.orbit.universe.DeepSpacePosition;
 import dev.devce.rocketnautics.content.orbit.universe.UniverseDefinition;
@@ -22,18 +21,12 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.debug.DebugRenderer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.FastColor;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import org.hipparchus.geometry.euclidean.threed.Rotation;
-import org.hipparchus.geometry.euclidean.threed.RotationConvention;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
-import org.joml.Vector3d;
-import org.joml.Vector3f;
 import org.jspecify.annotations.NonNull;
 import org.orekit.frames.Frame;
 import org.orekit.orbits.Orbit;
@@ -44,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 @OnlyIn(Dist.CLIENT)
 public class HologramTableRenderer extends SafeBlockEntityRenderer<HologramTableBlockEntity> {
@@ -61,11 +53,11 @@ public class HologramTableRenderer extends SafeBlockEntityRenderer<HologramTable
         DeepSpacePosition position = null;
         AbsoluteDate renderDate;
         long renderTicks = Minecraft.getInstance().levelRenderer.getTicks();
-        if (DeepSpaceHandler.hasReceivedPosition() && DeepSpaceData.isDeepSpace(be.getLevel())) {
+        if (DeepSpaceHandler.hasReceivedPosition() && DeepSpaceHelper.isDeepSpace(be.getLevel())) {
             position = DeepSpaceHandler.getReceivedPosition();
             renderDate = DeepSpaceHandler.getRenderDate(partialTicks);
         } else {
-            renderDate = DeepSpaceData.getTime(renderTicks).shiftedBy(partialTicks / 20);
+            renderDate = DeepSpaceHelper.getDateByTicks(renderTicks).shiftedBy(partialTicks / 20);
         }
         Frame centerFrame;
         if (position != null) {
@@ -168,6 +160,7 @@ public class HologramTableRenderer extends SafeBlockEntityRenderer<HologramTable
         int count = 0;
         if (iter.hasNext()) {
             Vector3D v = iter.next().scalarMultiply(scaleFactor);
+            Vector3D norm = null;
             while (iter.hasNext()) {
                 Vector3D vNext = iter.next().scalarMultiply(scaleFactor);
                 if (stopCondition.test(v)) {
@@ -182,7 +175,13 @@ public class HologramTableRenderer extends SafeBlockEntityRenderer<HologramTable
                     cycling2.add(new Vector3D(partialCycle, vNext, 1 - partialCycle, v));
                 }
                 count++;
-                Vector3D norm = vNext.subtract(v).normalize();
+                Vector3D dif = vNext.subtract(v);
+                if (dif.getNormSq() > 1e-20) {
+                    norm = dif.normalize();
+                } else if (norm == null) {
+                    v = vNext;
+                    continue;
+                }
                 buffer.addVertex(ms.last(), (float) v.getX(), (float) v.getY(), (float) v.getZ())
                         .setColor(0.8f, 0.8f, b, 0.8f)
                         .setNormal(ms.last(), (float) norm.getX(), (float) norm.getY(), (float) norm.getZ());

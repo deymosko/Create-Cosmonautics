@@ -1,6 +1,7 @@
 package dev.devce.rocketnautics.content.orbit.universe;
 
 import dev.devce.rocketnautics.client.PlanetColors;
+import dev.devce.rocketnautics.content.RocketDimensions;
 import dev.devce.rocketnautics.content.orbit.universe.builder.UniverseDefinitionBuilder;
 import net.minecraft.world.level.Level;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
@@ -108,7 +109,7 @@ public final class StandardUniverseProvider {
         final int overworldOrbitalYearInOverworldDays = 72 * 7; // one real-life week. Balance between a shorter time and having a large sphere of influence.
         final int overworldDaynightCycleLengthTicks = 24_000;
         final int overworldDaynightCycleLengthSeconds = 1200;
-        final int lunarMonthInOverworldDays = 8;
+        final int lunarMonthInOverworldDays = 8 * 3; // 8 real-life hours
         final double overworldDistance = solRadius * 40 / 3; // roughly based on the angular size of the sun in the overworld
         // orbit duration in seconds = 2pi * sqrt(r^3 / mu)
         // mu = r^3 * (2pi / orbit duration in seconds)^2
@@ -148,18 +149,15 @@ public final class StandardUniverseProvider {
                 .cubePlanet(p -> p
                         .setFrameName("moon")
                         .setShadowLightSource("sol")
+                        .setLinkedDimension(RocketDimensions.MOON)
+                        .setDimensionTransferHeight(20000)
+                        .setRenderUniverseInDimension(true)
+                        .setControlDimensionDayTimeLightSource("sol")
+                        .setApplyGravityCorrectionToEntities(true)
                         .setAccelerationAtSurface(2)
-                        .setRenderDataOverride(i -> {
-                            byte[] data = new byte[PlanetColors.ARRAY_SIZE];
-                            for (int j = 0; j < 256; j++) {
-                                for (int k = 0; k < 256; k++) {
-                                    data[j + 256 * k] = PlanetColors.MOON_1;
-                                }
-                            }
-                            return data;
-                        })
                         .setCircularOrbit("overworld", lunarMonthInOverworldDays * overworldDaynightCycleLengthSeconds, Vector3D.PLUS_J)
-                        .radiusFromDistance(d -> (d - overworldRadius) * 3 / 40) // roughly based on the angular size of the moon in the overworld
+                        .setRadius(overworldRadius / 4)
+//                        .radiusFromDistance(d -> (d - overworldRadius) * 3 / 40) // roughly based on the angular size of the moon in the overworld
                         .setTidalLocked());
     }
 }

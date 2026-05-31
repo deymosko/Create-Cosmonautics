@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "rocketnautics:block/lunar_moss_short",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "rocketnautics:block/lunar_moss_short",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north": {
+      "model": "rocketnautics:block/lunar_moss_short",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "rocketnautics:block/lunar_moss_short",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up": {
+      "model": "rocketnautics:block/lunar_moss_short"
+    },
+    "facing=west": {
+      "model": "rocketnautics:block/lunar_moss_short",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

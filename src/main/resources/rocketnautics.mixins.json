@@ -5,10 +5,12 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BacktankUtilMixin",
+    "CarvingContextMixin",
     "BucketItemAccessor",
     "DistanceManagerAccessor",
     "DivingHelmetItemMixin",
     "EntityMixin",
+    "LevelTimeAccessMixin",
     "LivingEntityAccessor",
     "LivingEntityMixin",
     "RemainingAirOverlayMixin",
