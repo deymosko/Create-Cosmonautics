@@ -27,7 +27,7 @@ import java.util.function.IntFunction;
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class PlanetDefinitionBuilder {
     public static final Codec<PlanetDefinitionBuilder> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.STRING.optionalFieldOf("parent", "root").forGetter(p -> p.parent),
+            Codec.STRING.optionalFieldOf("parent").forGetter(p -> p.parent),
             Codec.STRING.fieldOf("name").forGetter(p -> p.name),
             Codec.DOUBLE.optionalFieldOf("radius").forGetter(p -> p.radius),
             Codec.DOUBLE.optionalFieldOf("mu").forGetter(p -> p.mu),
@@ -39,11 +39,12 @@ public class PlanetDefinitionBuilder {
             ResourceLocation.CODEC.optionalFieldOf("texture_override").forGetter(p -> p.textureOverride),
             Codec.BOOL.optionalFieldOf("use_texture_override").forGetter(p -> p.useTextureOverride),
             Codec.INT.optionalFieldOf("priority", 1000).forGetter(p -> p.priority),
-            Codec.BOOL.optionalFieldOf("disabled", false).forGetter(p -> p.disabled)
+            Codec.BOOL.optionalFieldOf("disabled").forGetter(p -> p.disabled)
             ).apply(instance, PlanetDefinitionBuilder::new));
 
     // dimension data
     public Optional<ResourceKey<Level>> linkedDimension = Optional.empty();
+    public Optional<PlanetDimensionData.AllowedTransfer> allowedTransfer = Optional.empty();
     public Optional<Integer> transferHeight = Optional.empty();
     public Optional<Boolean> renderUniverseInDimension = Optional.empty();
     public Optional<String> dimensionDayTimeControllerName = Optional.empty();
@@ -53,7 +54,7 @@ public class PlanetDefinitionBuilder {
     public Optional<Boolean> star = Optional.empty();
     public Optional<String> lightSource = Optional.empty();
     // everything else
-    public final @NotNull String parent;
+    public final Optional<String> parent;
     public final @NotNull String name;
     public Optional<Double> radius = Optional.empty();
     public Optional<Boolean> useTextureOverride = Optional.empty();
@@ -66,26 +67,26 @@ public class PlanetDefinitionBuilder {
     public Optional<SerializablePosition> position = Optional.empty();
 
     // universe loader data
-    public boolean disabled = false;
+    public Optional<Boolean> disabled = Optional.empty();
     public int priority = 1000;
     public final Set<String> dependencies;
 
     public PlanetDefinitionBuilder(@Nullable String parent, @NotNull String name) {
-        this.parent = parent == null ? "root" : parent;
+        this.parent = (parent == null ? "root" : parent).describeConstable();
         this.name = name;
         this.dependencies = new ObjectOpenHashSet<>();
     }
 
-    protected PlanetDefinitionBuilder(@NotNull String parent, @NotNull String name, Optional<Double> radius,
+    protected PlanetDefinitionBuilder(Optional<String> parent, @NotNull String name, Optional<Double> radius,
                                       Optional<Double> mu, Optional<Double> accelerationAtSurface,
                                       Optional<SerializablePosition> position, Optional<SerializableRotation> rotation,
                                       Optional<SerializableDimensionData> dimData, Optional<SerializablePlanetExtras> extras,
                                       Optional<ResourceLocation> textureOverride, Optional<Boolean> useTextureOverride,
-                                      int priority, boolean disabled) {
+                                      int priority, Optional<Boolean> disabled) {
         this.parent = parent;
         this.name = name;
         this.dependencies = new ObjectOpenHashSet<>();
-        dependencies.add(parent);
+        parent.ifPresent(dependencies::add);
         this.radius = radius;
         this.mu = mu;
         this.accelerationAtSurface = accelerationAtSurface;
@@ -93,6 +94,7 @@ public class PlanetDefinitionBuilder {
         this.rotation = rotation;
         if (dimData.isPresent()) {
             this.linkedDimension = dimData.get().key();
+            this.allowedTransfer = dimData.get().allowedTransfer();
             this.transferHeight = dimData.get().transitionHeight();
             this.renderUniverseInDimension = dimData.get().renderUniverseInDimension();
             this.dimensionDayTimeControllerName = dimData.get().dimensionDayTimeControllerName();
@@ -113,7 +115,7 @@ public class PlanetDefinitionBuilder {
 
     public PlanetDefinitionBuilder subsume(PlanetDefinitionBuilder other) {
         return new PlanetDefinitionBuilder(
-                this.parent, this.name, resolve(this.radius, other.radius),
+                resolve(this.parent, other.parent), this.name, resolve(this.radius, other.radius),
                 resolve(this.mu, other.mu), resolve(this.accelerationAtSurface, other.accelerationAtSurface),
                 resolve(this.position, other.position), resolve(this.rotation, other.rotation),
                 resolve(this.serializeDimensionData(), other.serializeDimensionData()),
@@ -129,7 +131,7 @@ public class PlanetDefinitionBuilder {
     }
 
     protected Optional<SerializableDimensionData> serializeDimensionData() {
-        return SerializableDimensionData.of(linkedDimension, transferHeight, renderUniverseInDimension, dimensionDayTimeControllerName, applyGravityCorrectionToEntities);
+        return SerializableDimensionData.of(linkedDimension, allowedTransfer, transferHeight, renderUniverseInDimension, dimensionDayTimeControllerName, applyGravityCorrectionToEntities);
     }
 
     protected Optional<SerializablePlanetExtras> serializePlanetExtras() {
@@ -137,13 +139,16 @@ public class PlanetDefinitionBuilder {
     }
 
     public CubePlanet build(UniverseDefinitionBuilder destination) {
+        if (this.parent.isEmpty()) {
+            throw new IllegalStateException("Builder has no parent frame! To lock to the unmoving root frame, use 'root'!");
+        }
         if (radius.isEmpty()) {
             throw new IllegalStateException("Builder has no radius!");
         } else if (radius.get() <= 0) {
             throw new IllegalStateException("Builder has a nonpositive radius [" + radius.get() + "]!");
         }
         double radius = this.radius.get();
-        FrameTree parent = destination.getFrameByName(this.parent);
+        FrameTree parent = destination.getFrameByName(this.parent.get());
         if (parent == null) {
             throw new IllegalStateException("Builder could not find its parent!");
         }
@@ -201,7 +206,7 @@ public class PlanetDefinitionBuilder {
                 id = f.getId();
             }
         }
-        return new PlanetDimensionData(linkedDimension.get(), transferHeight.orElse(20_000), renderUniverseInDimension.orElse(false), id, applyGravityCorrectionToEntities.orElse(false));
+        return new PlanetDimensionData(linkedDimension.get(), allowedTransfer.orElse(PlanetDimensionData.AllowedTransfer.NONE), transferHeight.orElse(20_000), renderUniverseInDimension.orElse(false), id, applyGravityCorrectionToEntities.orElse(false));
     }
 
     protected PlanetExtras constructExtras(UniverseDefinitionBuilder destination) {
@@ -216,7 +221,12 @@ public class PlanetDefinitionBuilder {
     }
 
     public PlanetDefinitionBuilder setLinkedDimension(@Nullable ResourceKey<Level> linkedDimension) {
+        return setLinkedDimension(linkedDimension, PlanetDimensionData.AllowedTransfer.ALL);
+    }
+
+    public PlanetDefinitionBuilder setLinkedDimension(@Nullable ResourceKey<Level> linkedDimension, PlanetDimensionData.AllowedTransfer allowedTransfer) {
         this.linkedDimension = Optional.ofNullable(linkedDimension);
+        this.allowedTransfer = Optional.ofNullable(allowedTransfer);
         return this;
     }
 
@@ -230,7 +240,7 @@ public class PlanetDefinitionBuilder {
         return this;
     }
 
-    public PlanetDefinitionBuilder setDimensionDayTimeControllerName(String name) {
+    public PlanetDefinitionBuilder setDimensionDayTimeController(String name) {
         this.dimensionDayTimeControllerName = name.describeConstable();
         return this;
     }
@@ -261,7 +271,7 @@ public class PlanetDefinitionBuilder {
     }
 
     public PlanetDefinitionBuilder setParentIsShadowLightSource() {
-        this.lightSource = parent.describeConstable();
+        parent.ifPresent(s -> this.lightSource = s.describeConstable());
         return this;
     }
 
@@ -384,7 +394,7 @@ public class PlanetDefinitionBuilder {
     }
 
     public PlanetDefinitionBuilder setDisabled(boolean disabled) {
-        this.disabled = disabled;
+        this.disabled = Optional.of(disabled);
         return this;
     }
 

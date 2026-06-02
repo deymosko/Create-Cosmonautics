@@ -2,6 +2,7 @@
   "parent": "sol",
   "acceleration_at_surface": 11.0,
   "dimension_data": {
+    "allowed_transfer": "all",
     "dimension_transfer_height": 20000,
     "linked_dimension": "minecraft:overworld"
   },

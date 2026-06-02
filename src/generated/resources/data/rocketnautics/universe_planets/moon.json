@@ -2,8 +2,12 @@
   "parent": "overworld",
   "acceleration_at_surface": 2.0,
   "dimension_data": {
+    "allowed_transfer": "all",
+    "apply_gravity_correction_to_entities_in_dimension": true,
+    "dimension_day_time_controller_name": "sol",
     "dimension_transfer_height": 20000,
-    "linked_dimension": "rocketnautics:moon"
+    "linked_dimension": "rocketnautics:moon",
+    "render_universe_in_dimension": true
   },
   "name": "moon",
   "planet_extras": {
