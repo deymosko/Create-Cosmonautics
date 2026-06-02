@@ -4,22 +4,20 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
-public record PlanetDimensionData(ResourceKey<Level> key, int transitionHeight, boolean renderUniverseInDimension, int controlDimensionDayTimeID, boolean applyGravityCorrectionToEntities) {
-
-    public PlanetDimensionData(ResourceKey<Level> key, int transitionHeight, boolean renderUniverseInDimension, boolean applyGravityCorrectionToEntities) {
-        this(key, transitionHeight, renderUniverseInDimension, -1, applyGravityCorrectionToEntities);
-    }
+public record PlanetDimensionData(@NotNull ResourceKey<Level> key, int transitionHeight, boolean renderUniverseInDimension,
+                                  int dimensionDayTimeControllerID, boolean applyGravityCorrectionToEntities) {
 
     public boolean controlsDimensionDayTime() {
-        return controlDimensionDayTimeID >= 0;
+        return dimensionDayTimeControllerID >= 0;
     }
 
     public void write(FriendlyByteBuf buf) {
         buf.writeResourceKey(key);
         buf.writeVarInt(transitionHeight);
         buf.writeBoolean(renderUniverseInDimension);
-        buf.writeVarInt(controlDimensionDayTimeID);
+        buf.writeVarInt(dimensionDayTimeControllerID);
         buf.writeBoolean(applyGravityCorrectionToEntities);
     }
 
