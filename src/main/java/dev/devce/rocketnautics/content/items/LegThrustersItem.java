@@ -147,9 +147,7 @@ public class LegThrustersItem extends BaseArmorItem {
         SubLevelContainer c = relativeID != null ? SubLevelContainer.getContainer(entity.level()) : null;
         SubLevel relative = c != null ? c.getSubLevel(relativeID) : null;
         if (relative != null && ((EntityMovementExtension) entity).sable$getTrackingSubLevel() != relative) {
-            Vector3d extra = ((LivingEntityMovementExtension) entity).sable$getInheritedVelocity();
-            Vector3f change = relative.logicalPose().position().sub(relative.lastPose().position(), new Vector3d()).sub(extra).get(new Vector3f());
-            entity.setPos(entity.position().add(new Vec3(change)));
+            ((LivingEntityMovementExtension) entity).sable$getInheritedVelocity().set(relative.logicalPose().position().sub(relative.lastPose().position(), new Vector3d()));
         }
         entity.setDeltaMovement(entity.getDeltaMovement().scale(0.9));
         return true;
