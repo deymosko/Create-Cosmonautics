@@ -48,7 +48,7 @@ While Cube Planets can be linked to custom dimensions, we do not provide any too
 
 **`dimension_day_time_controller_name`** (optional): The name of the celestial body that will be compared against to determine the time of day in the linked dimension. Recommended if the universe is rendered in the dimension.
 
-**`apply_gravity_correction_to_entities_in_dimension`** (optional, default `false`): Whether a gravity correction should be applied to entities in the dimension. Normal gravity is assumed to be `11m/s^2` at surface because this is the Sable default, and the correction will be proportional to the ratio between this and the cube planet's acceleration at surface. The acceleration at surface can be derived from `mu`.
+**`apply_gravity_correction_to_entities_in_dimension`** (optional, default `false`): Whether a gravity correction should be applied to entities in the dimension. Normal gravity is assumed to be `11m/s^2` at surface because this is the Sable default, and the correction will be proportional to the ratio between this and the gravity found in the dimension's physics data supplied by Sable.
 
 **`entity_drag_multiplier`** (optional): A list of bezier control points for controlling entity drag with altitude, equivalent to Sable's native `pressure_function` in dimension physics data. Each point has `altitude` (y-level), `value` (multiplier to entity drag at that altitude), and `slope` (rate of change). Omit this field for no modifications to entity drag.
 
