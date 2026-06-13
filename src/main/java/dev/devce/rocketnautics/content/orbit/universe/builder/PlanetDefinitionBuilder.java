@@ -57,6 +57,9 @@ public class PlanetDefinitionBuilder {
     public Optional<String> dimensionDayTimeControllerName = Optional.empty();
     public Optional<Boolean> applyGravityCorrectionToEntities = Optional.empty();
     public Optional<BezierResourceFunction> entityDragMultiplier = Optional.empty();
+    public Optional<Double> surfaceMapCenterX = Optional.empty();
+    public Optional<Double> surfaceMapCenterZ = Optional.empty();
+    public Optional<Double> surfaceMapRadius = Optional.empty();
     // planet extras
     public Optional<Boolean> clouds = Optional.empty();
     public Optional<Boolean> star = Optional.empty();
@@ -110,6 +113,9 @@ public class PlanetDefinitionBuilder {
             dimensionDayTimeControllerName.ifPresent(dependencies::add);
             this.applyGravityCorrectionToEntities = dimData.get().applyGravityCorrectionToEntities();
             this.entityDragMultiplier = dimData.get().entityDragMultiplier();
+            this.surfaceMapCenterX = dimData.get().surfaceMapCenterX();
+            this.surfaceMapCenterZ = dimData.get().surfaceMapCenterZ();
+            this.surfaceMapRadius = dimData.get().surfaceMapRadius();
         }
         if (extras.isPresent()) {
             this.clouds = extras.get().clouds();
@@ -141,7 +147,7 @@ public class PlanetDefinitionBuilder {
     }
 
     protected Optional<SerializableDimensionData> serializeDimensionData() {
-        return SerializableDimensionData.of(linkedDimension, allowedTransfer, transferHeight, atmosphere, renderUniverseInDimension, dimensionDayTimeControllerName, applyGravityCorrectionToEntities, entityDragMultiplier);
+        return SerializableDimensionData.of(linkedDimension, allowedTransfer, transferHeight, atmosphere, renderUniverseInDimension, dimensionDayTimeControllerName, applyGravityCorrectionToEntities, entityDragMultiplier, surfaceMapCenterX, surfaceMapCenterZ, surfaceMapRadius);
     }
 
     protected Optional<SerializablePlanetExtras> serializePlanetExtras() {
@@ -219,7 +225,10 @@ public class PlanetDefinitionBuilder {
                 transferHeight.orElse(20_000),
                 atmosphere.map(m -> (Int2ObjectSortedMap<EnumSet<AtmosphereFlags>>) new Int2ObjectAVLTreeMap<>(m)).orElse(Int2ObjectSortedMaps.emptyMap()), // bake into an AVL map for improved search performance
                 renderUniverseInDimension.orElse(false), id, applyGravityCorrectionToEntities.orElse(false),
-                entityDragMultiplier.orElse(PlanetDimensionData.EMPTY_BEZIER));
+                entityDragMultiplier.orElse(PlanetDimensionData.EMPTY_BEZIER),
+                surfaceMapCenterX.orElse(PlanetDimensionData.DEFAULT_SURFACE_MAP_CENTER_X),
+                surfaceMapCenterZ.orElse(PlanetDimensionData.DEFAULT_SURFACE_MAP_CENTER_Z),
+                surfaceMapRadius.orElse(PlanetDimensionData.DEFAULT_SURFACE_MAP_RADIUS));
     }
 
     protected PlanetExtras constructExtras(UniverseDefinitionBuilder destination) {
@@ -261,6 +270,25 @@ public class PlanetDefinitionBuilder {
     public PlanetDefinitionBuilder setApplyGravityCorrectionToEntities(boolean applyGravityCorrectionToEntities) {
         this.applyGravityCorrectionToEntities = Optional.of(applyGravityCorrectionToEntities);
         return this;
+    }
+
+    public PlanetDefinitionBuilder setSurfaceMapCenter(double x, double z) {
+        this.surfaceMapCenterX = Optional.of(x);
+        this.surfaceMapCenterZ = Optional.of(z);
+        return this;
+    }
+
+    public PlanetDefinitionBuilder setSurfaceMapRadius(double radius) {
+        if (radius <= 0) {
+            throw new IllegalArgumentException("Surface map radius must be positive!");
+        }
+        this.surfaceMapRadius = Optional.of(radius);
+        return this;
+    }
+
+    public PlanetDefinitionBuilder setSurfaceMap(double centerX, double centerZ, double radius) {
+        setSurfaceMapCenter(centerX, centerZ);
+        return setSurfaceMapRadius(radius);
     }
 
     public PlanetDefinitionBuilder setTextureOverride(ResourceLocation textureAlternative) {
