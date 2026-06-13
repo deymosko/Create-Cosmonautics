@@ -11,6 +11,9 @@
       "5000": []
     },
     "dimension_transfer_height": 20000,
+    "surface_map_center_x": 0.0,
+    "surface_map_center_z": 0.0,
+    "surface_map_radius": 30000000.0,
     "entity_drag_multiplier": [
       {
         "altitude": 4000.0,
