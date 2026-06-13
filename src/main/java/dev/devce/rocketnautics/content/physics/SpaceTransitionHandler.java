@@ -9,6 +9,7 @@ import dev.devce.rocketnautics.content.RocketDimensions;
 import dev.devce.rocketnautics.content.orbit.DeepSpaceData;
 import dev.devce.rocketnautics.content.orbit.DeepSpaceInstance;
 import dev.devce.rocketnautics.content.orbit.universe.CubePlanet;
+import dev.devce.rocketnautics.content.orbit.universe.PlanetDimensionData;
 import dev.devce.rocketnautics.mixin.DistanceManagerAccessor;
 import dev.devce.rocketnautics.network.SeamlessTransitionPayload;
 import dev.egg.SubLevelWarper;
@@ -114,7 +115,8 @@ public class SpaceTransitionHandler {
     public static void exitDeepSpace(MinecraftServer server, CubePlanet destination, Rotation correctionRotation, Vector3D positionInPlanetFrame, @NotNull Direction.Axis majorAxis, DeepSpaceInstance instance, Runnable afterFinished) {
         assert destination.linkedDimension() != null;
         final ServerLevel deepSpace = server.getLevel(RocketDimensions.DEEP_SPACE);
-        double scaleFactor = 30_000_000 / destination.radius();
+        PlanetDimensionData dimensionData = destination.linkedDimension();
+        double scaleFactor = dimensionData.surfaceMapRadius() / destination.radius();
         double targetHeight = destination.linkedDimension().transitionHeight() - SpaceTransitionHandler.TRANSITION_SAFE_OFFSET;
         Vector3D p = correctionRotation.applyInverseTo(positionInPlanetFrame);
         Vector3D axi;
@@ -157,6 +159,8 @@ public class SpaceTransitionHandler {
                 yield new Vector3d(p.getX() * scaleFactor, targetHeight, p.getZ() * scaleFactor);
             }
         };
+        destPos.x += dimensionData.surfaceMapCenterX();
+        destPos.z += dimensionData.surfaceMapCenterZ();
         ServerLevel destLevel = server.getLevel(destination.linkedDimension().key());
         if (destLevel == null) return;
         Rotation rotation = correctionRotation.compose(new Rotation(Vector3D.PLUS_J, axi), RotationConvention.VECTOR_OPERATOR);

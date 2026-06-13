@@ -253,8 +253,15 @@ public class DeepSpaceHelper {
     public static Pair<TimeStampedPVCoordinates, Rotation> localPositionToGlobalPositionAndRotation(Vector3dc localPosition, @Nullable Vector3dc localVelocity, CubePlanet planet, AbsoluteDate date) {
         Rotation rotation = planet.getRotationAtTime(date);
         rotation = rotation.compose(new Rotation(Vector3D.PLUS_J, Vector3D.PLUS_K), RotationConvention.VECTOR_OPERATOR);
-        Vector3d scaledPosition = localPosition.mul(planet.radius() / 30_000_000, new Vector3d());
-        Vector3D unrotatedPosition = new Vector3D(scaledPosition.x(), localPosition.y() + planet.radius(), scaledPosition.z());
+        PlanetDimensionData dimensionData = planet.linkedDimension();
+        double mapCenterX = dimensionData == null ? PlanetDimensionData.DEFAULT_SURFACE_MAP_CENTER_X : dimensionData.surfaceMapCenterX();
+        double mapCenterZ = dimensionData == null ? PlanetDimensionData.DEFAULT_SURFACE_MAP_CENTER_Z : dimensionData.surfaceMapCenterZ();
+        double mapRadius = dimensionData == null ? PlanetDimensionData.DEFAULT_SURFACE_MAP_RADIUS : dimensionData.surfaceMapRadius();
+        double scale = planet.radius() / mapRadius;
+        Vector3D unrotatedPosition = new Vector3D(
+                (localPosition.x() - mapCenterX) * scale,
+                localPosition.y() + planet.radius(),
+                (localPosition.z() - mapCenterZ) * scale);
         if (localVelocity != null && localVelocity.lengthSquared() < 1e-5) {
             localVelocity = new Vector3d(0, 1, 0);
         }
